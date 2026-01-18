@@ -39,20 +39,20 @@ const initialCategories: Omit<DomainCategory, 'domainCount'>[] = [
 
 // In a dev environment, Next.js clears the cache on every request, so we use globalThis to persist data.
 if (process.env.NODE_ENV === 'production') {
-  global.mockDb = {
+  globalThis.mockDb = {
     domains: initialDomains,
     categories: initialCategories
   }
 } else {
-  if (!global.mockDb) {
-    global.mockDb = {
+  if (!globalThis.mockDb) {
+    globalThis.mockDb = {
         domains: initialDomains,
         categories: initialCategories
     }
   }
 }
 
-const db = global.mockDb;
+const db = globalThis.mockDb;
 
 // Simulate API delay
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
