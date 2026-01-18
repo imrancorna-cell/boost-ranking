@@ -68,7 +68,7 @@ export async function addCategory(name: string) {
     const newCategory = { id: String(CATEGORIES.length + 1), name, slug };
     console.log('Adding category (mock):', newCategory);
     // In a real app, you would mutate the data source.
-    // CATEGORIES.push(newCategory);
+    CATEGORIES.push(newCategory);
     return newCategory;
 }
 
@@ -76,13 +76,13 @@ export async function addDomain(domain: Omit<Domain, 'id'>) {
     await sleep(200);
     const newDomain = { ...domain, id: String(DOMAINS.length + 1) };
     console.log('Adding domain (mock):', newDomain);
-    // DOMAINS.push(newDomain);
+    DOMAINS.push(newDomain);
     return newDomain;
 }
 
 export async function addBulkDomains(domains: Omit<Domain, 'id'>[]) {
     await sleep(500);
     console.log('Adding bulk domains (mock):', domains);
-    // DOMAINS.push(...domains.map((d, i) => ({ ...d, id: String(DOMAINS.length + i + 1) })));
+    DOMAINS.push(...domains.map((d, i) => ({ ...d, id: String(DOMAINS.length + i + 1) })));
     return domains;
 }
