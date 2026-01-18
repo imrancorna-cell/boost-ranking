@@ -1,6 +1,14 @@
 import type { DomainCategory, Domain } from './definitions';
 
-const DOMAINS: Domain[] = [
+// Define a type for our global data store
+declare global {
+  var mockDb: {
+    domains: Domain[];
+    categories: Omit<DomainCategory, 'domainCount'>[];
+  };
+}
+
+const initialDomains: Domain[] = [
   { id: '1', url: 'example.com', da: 30, tf: 20, dr: 25, ss: 2, categorySlug: 'general-domains' },
   { id: '2', url: 'sample.net', da: 45, tf: 35, dr: 40, ss: 1, categorySlug: 'general-domains' },
   { id: '3', url: 'test.org', da: 22, tf: 15, dr: 18, ss: 5, categorySlug: 'general-domains' },
@@ -23,66 +31,82 @@ const DOMAINS: Domain[] = [
   { id: '20', url: 'e-commerce.store', da: 55, tf: 52, dr: 58, ss: 1, categorySlug: 'premium-domains' },
 ];
 
-const CATEGORIES: Omit<DomainCategory, 'domainCount'>[] = [
+const initialCategories: Omit<DomainCategory, 'domainCount'>[] = [
   { id: '1', name: 'General Domains', slug: 'general-domains' },
   { id: '2', name: 'Premium Domains', slug: 'premium-domains' },
   { id: '3', name: 'Other Domains', slug: 'other-domains' },
 ];
 
+// In a dev environment, Next.js clears the cache on every request, so we use globalThis to persist data.
+if (process.env.NODE_ENV === 'production') {
+  global.mockDb = {
+    domains: initialDomains,
+    categories: initialCategories
+  }
+} else {
+  if (!global.mockDb) {
+    global.mockDb = {
+        domains: initialDomains,
+        categories: initialCategories
+    }
+  }
+}
+
+const db = global.mockDb;
 
 // Simulate API delay
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function getCategories(): Promise<DomainCategory[]> {
   await sleep(50);
-  return CATEGORIES.map(category => ({
+  return db.categories.map(category => ({
     ...category,
-    domainCount: DOMAINS.filter(d => d.categorySlug === category.slug).length,
+    domainCount: db.domains.filter(d => d.categorySlug === category.slug).length,
   }));
 }
 
 export async function getCategoryBySlug(slug: string): Promise<DomainCategory | undefined> {
   await sleep(50);
-  const category = CATEGORIES.find(c => c.slug === slug);
+  const category = db.categories.find(c => c.slug === slug);
   if (!category) return undefined;
   return {
     ...category,
-    domainCount: DOMAINS.filter(d => d.categorySlug === slug).length,
+    domainCount: db.domains.filter(d => d.categorySlug === slug).length,
   };
 }
 
 export async function getDomains(): Promise<Domain[]> {
   await sleep(100);
-  return DOMAINS;
+  return db.domains;
 }
 
 export async function getDomainsByCategory(categorySlug: string): Promise<Domain[]> {
   await sleep(100);
-  return DOMAINS.filter(domain => domain.categorySlug === categorySlug);
+  return db.domains.filter(domain => domain.categorySlug === categorySlug);
 }
 
 // Mock mutation functions for admin panel
 export async function addCategory(name: string) {
     await sleep(200);
     const slug = name.toLowerCase().replace(/\s+/g, '-');
-    const newCategory = { id: String(CATEGORIES.length + 1), name, slug };
+    const newCategory = { id: String(db.categories.length + 1), name, slug };
     console.log('Adding category (mock):', newCategory);
     // In a real app, you would mutate the data source.
-    CATEGORIES.push(newCategory);
+    db.categories.push(newCategory);
     return newCategory;
 }
 
 export async function addDomain(domain: Omit<Domain, 'id'>) {
     await sleep(200);
-    const newDomain = { ...domain, id: String(DOMAINS.length + 1) };
+    const newDomain = { ...domain, id: String(db.domains.length + 1) };
     console.log('Adding domain (mock):', newDomain);
-    DOMAINS.push(newDomain);
+    db.domains.push(newDomain);
     return newDomain;
 }
 
 export async function addBulkDomains(domains: Omit<Domain, 'id'>[]) {
     await sleep(500);
     console.log('Adding bulk domains (mock):', domains);
-    DOMAINS.push(...domains.map((d, i) => ({ ...d, id: String(DOMAINS.length + i + 1) })));
+    db.domains.push(...domains.map((d, i) => ({ ...d, id: String(db.domains.length + i + 1) })));
     return domains;
 }
