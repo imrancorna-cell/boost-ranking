@@ -1,0 +1,113 @@
+{
+  "entities": {
+    "DomainCategory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "DomainCategory",
+      "type": "object",
+      "description": "Represents a category of domains.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Domain Category."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the domain category (e.g., General Domains, Premium Domains)."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL of the logo associated with the domain category.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Domain": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Domain",
+      "type": "object",
+      "description": "Represents a domain with its associated metrics.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Domain."
+        },
+        "domainCategoryId": {
+          "type": "string",
+          "description": "Reference to DomainCategory. (Relationship: DomainCategory 1:N Domain)"
+        },
+        "url": {
+          "type": "string",
+          "description": "URL of the domain."
+        },
+        "da": {
+          "type": "number",
+          "description": "Domain Authority of the domain."
+        },
+        "tf": {
+          "type": "number",
+          "description": "Trust Flow of the domain."
+        },
+        "dr": {
+          "type": "number",
+          "description": "Domain Rating of the domain."
+        },
+        "ss": {
+          "type": "number",
+          "description": "Spam Score of the domain."
+        }
+      },
+      "required": [
+        "id",
+        "domainCategoryId",
+        "url"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/domainCategories/{domainCategoryId}",
+        "definition": {
+          "entityName": "DomainCategory",
+          "schema": {
+            "$ref": "#/backend/entities/DomainCategory"
+          },
+          "description": "Stores domain categories. Admin write access only via collection group access.",
+          "params": [
+            {
+              "name": "domainCategoryId",
+              "description": "Unique identifier for the Domain Category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/domains/{domainId}",
+        "definition": {
+          "entityName": "Domain",
+          "schema": {
+            "$ref": "#/backend/entities/Domain"
+          },
+          "description": "Stores domain information and metrics. Admin write access only via collection group access.",
+          "params": [
+            {
+              "name": "domainId",
+              "description": "Unique identifier for the Domain."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability for the Domain Portfolio Navigator application. \n\n**Authorization Independence:** The design avoids hierarchical authorization dependencies by not relying on `get()` calls in security rules. Each document contains the necessary authorization context within itself. For example, while the domains are linked to a category, no access control information from the category needs to be checked during domain reads. Domain management is admin only via collection group restrictions, so this is not an issue.\n\n**Structural Segregation:** The structure separates data with different access requirements into different collections. The `domainCategories` and `domains` are managed through the admin interface, while general read access to domains and their attributes is granted through the structure. Segregation simplifies security rules and ensures QAPs are met.\n\n**Access Modeling:** Since creation and modification are admin only, the rules will reflect this, making use of collection group rules for simplified access.\n\n**QAPs Support:** The structure supports secure `list` operations via structural segregation and clear ownership models. The admin-only nature of category/domain management ensures that listing operations can be securely restricted, enabling efficient and safe data retrieval.\n\n**Invariants:** The structure supports integrity of ownership and timestamps. Although not explicitly included as an entity attribute, timestamps can be added to ensure correct record keeping.\n"
+  }
+}
