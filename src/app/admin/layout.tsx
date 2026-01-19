@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -15,14 +15,16 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   FolderKanban,
   Globe,
   PanelLeft,
+  Loader2,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
+import { useUser } from '@/firebase';
+import { useEffect, useState } from 'react';
 
 const menuItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,6 +38,37 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (!isUserLoading) {
+      if (user) {
+        user.getIdTokenResult().then((idTokenResult) => {
+          if (idTokenResult.claims.isAdmin) {
+            setIsAuthorized(true);
+          } else {
+            router.push('/'); // Redirect non-admins to home
+          }
+          setAuthChecked(true);
+        });
+      } else {
+        const loginUrl = new URL('/login', window.location.origin);
+        loginUrl.searchParams.set('next', pathname);
+        router.push(loginUrl.toString());
+      }
+    }
+  }, [user, isUserLoading, router, pathname]);
+
+  if (!authChecked || !isAuthorized) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>

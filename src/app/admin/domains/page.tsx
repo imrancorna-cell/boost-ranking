@@ -3,8 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useTransition, useEffect } from 'react';
-import { addDomainAction, addBulkDomainsAction } from '@/lib/actions';
+import { useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,8 +26,6 @@ import {
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getCategories, getDomains } from '@/lib/data';
-import type { Domain, DomainCategory } from '@/lib/definitions';
 import {
   Table,
   TableBody,
@@ -38,6 +35,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { addDomain, addBulkDomains } from '@/lib/data-service';
+import type { Domain, DomainCategory } from '@/lib/definitions';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 const domainSchema = z.object({
   url: z.string().min(3, { message: 'URL is required' }),
@@ -56,6 +57,7 @@ const bulkSchema = z.object({
 function AddDomainForm({ categories }: { categories: DomainCategory[] }) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof domainSchema>>({
     resolver: zodResolver(domainSchema),
@@ -64,14 +66,14 @@ function AddDomainForm({ categories }: { categories: DomainCategory[] }) {
 
   const onSubmit = (values: z.infer<typeof domainSchema>) => {
     startTransition(async () => {
-      const result = await addDomainAction(values);
-      if (result.success) {
+      try {
+        await addDomain(firestore, values);
         toast({ title: 'Success', description: 'Domain added successfully.' });
         form.reset();
-      } else {
+      } catch (e: any) {
         toast({
           title: 'Error',
-          description: result.error || 'Failed to add domain.',
+          description: e.message || 'Failed to add domain.',
           variant: 'destructive',
         });
       }
@@ -187,6 +189,7 @@ function AddDomainForm({ categories }: { categories: DomainCategory[] }) {
 function BulkAddForm({ categories }: { categories: DomainCategory[] }) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof bulkSchema>>({
     resolver: zodResolver(bulkSchema),
@@ -195,14 +198,26 @@ function BulkAddForm({ categories }: { categories: DomainCategory[] }) {
 
   const onSubmit = (values: z.infer<typeof bulkSchema>) => {
     startTransition(async () => {
-      const result = await addBulkDomainsAction(values);
-      if (result.success) {
+      try {
+        const lines = values.data.split('\n').filter(line => line.trim() !== '');
+        const domains: Omit<Domain, 'id'>[] = lines.map(line => {
+            const [url, da, tf, dr, ss] = line.split(',').map(s => s.trim());
+            return {
+                url,
+                da: parseInt(da) || 0,
+                tf: parseInt(tf) || 0,
+                dr: parseInt(dr) || 0,
+                ss: parseInt(ss) || 0,
+                categorySlug: values.categorySlug,
+            };
+        });
+        await addBulkDomains(firestore, domains);
         toast({ title: 'Success', description: 'Bulk domains processed.' });
         form.reset();
-      } else {
+      } catch (e: any) {
         toast({
           title: 'Error',
-          description: result.error || 'Failed to process bulk domains.',
+          description: e.message || 'Failed to process bulk domains.',
           variant: 'destructive',
         });
       }
@@ -263,25 +278,17 @@ function BulkAddForm({ categories }: { categories: DomainCategory[] }) {
 }
 
 export default function AdminDomainsPage() {
-  const [categories, setCategories] = useState<DomainCategory[]>([]);
-  const [domains, setDomains] = useState<Domain[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const [fetchedCategories, fetchedDomains] = await Promise.all([
-        getCategories(),
-        getDomains(),
-      ]);
-      setCategories(fetchedCategories);
-      setDomains(fetchedDomains);
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
+  const firestore = useFirestore();
   
-  const getCategoryName = (slug: string) => categories.find(c => c.slug === slug)?.name || slug;
+  const categoriesQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null, [firestore]);
+  const domainsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'domains'), orderBy('url')) : null, [firestore]);
+
+  const { data: categories, isLoading: categoriesLoading } = useCollection<DomainCategory>(categoriesQuery);
+  const { data: domains, isLoading: domainsLoading } = useCollection<Domain>(domainsQuery);
+  
+  const isLoading = categoriesLoading || domainsLoading;
+
+  const getCategoryName = (slug: string) => categories?.find(c => c.slug === slug)?.name || slug;
 
   return (
     <div className="space-y-6">
@@ -298,14 +305,14 @@ export default function AdminDomainsPage() {
         <TabsContent value="single">
           <Card>
             <CardContent className="p-6">
-              <AddDomainForm categories={categories} />
+              <AddDomainForm categories={categories || []} />
             </CardContent>
           </Card>
         </TabsContent>
         <TabsContent value="bulk">
           <Card>
             <CardContent className="p-6">
-              <BulkAddForm categories={categories} />
+              <BulkAddForm categories={categories || []} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -325,7 +332,7 @@ export default function AdminDomainsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loading ? (
+                {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-4 w-40" /></TableCell>
@@ -334,14 +341,22 @@ export default function AdminDomainsPage() {
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                     </TableRow>
                   ))
-                ) : domains.map((domain) => (
-                  <TableRow key={domain.id}>
-                    <TableCell className="font-medium">{domain.url}</TableCell>
-                    <TableCell>{getCategoryName(domain.categorySlug)}</TableCell>
-                    <TableCell>{domain.da}</TableCell>
-                    <TableCell>{domain.dr}</TableCell>
-                  </TableRow>
-                ))}
+                ) : domains && domains.length > 0 ? (
+                  domains.map((domain) => (
+                    <TableRow key={domain.id}>
+                      <TableCell className="font-medium">{domain.url}</TableCell>
+                      <TableCell>{getCategoryName(domain.categorySlug)}</TableCell>
+                      <TableCell>{domain.da}</TableCell>
+                      <TableCell>{domain.dr}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={4} className="h-24 text-center">
+                            No domains found.
+                        </TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>

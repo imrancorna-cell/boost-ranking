@@ -1,62 +1,22 @@
-/**
- * Core Philosophy: This ruleset enforces a "Public Read, Admin-Only Write" security model. All domain and category information is publicly readable by any user, including unauthenticated visitors. All write operations (create, update, delete) are currently disabled, as the application requires a mechanism to identify administrative users (e.g., custom claims) before write access can be safely granted.
- *
- * Data Structure: The data is organized into two independent, top-level collections:
- * - /domainCategories: Stores the different categories for domains.
- * - /domains: Stores individual domain metrics and links back to a category.
- * This flat structure avoids complex relational security checks and improves query performance.
- *
- * Key Security Decisions:
- * - Public Read Access: To support the application's core feature of displaying domain rankings, all data in both collections is publicly readable via `get` and `list` operations.
- * - Write Lockdown: Per the application's reasoning, write access should be restricted to administrators. As there is currently no defined 'admin' role or custom claim available in the authentication data, all write operations are explicitly denied (`if false;`) as a secure default. This prevents any unauthorized data modification.
- * - No User-Specific Data: This ruleset does not manage any user-specific or private data. All collections are treated as public directories.
- *
- * Denormalization for Authorization: The security model is simple and does not require denormalization, as access is not determined by document-level ownership but rather by a global role (Admin) that is yet to be implemented.
- *
- * Structural Segregation: The use of separate top-level collections for `domainCategories` and `domains` provides clear structural segregation, simplifying the rules for each data type.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ----------------------------------------------------------------------
-    // Helper Functions
-    // ----------------------------------------------------------------------
-
-    // ----------------------------------------------------------------------
-    // Collection Rules
-    // ----------------------------------------------------------------------
-
-    /**
-     * @description Grants public read-only access to domain categories. Write access is fully restricted until an admin identification mechanism is implemented.
-     * @path /domainCategories/{domainCategoryId}
-     * @allow (get) Any user, including unauthenticated ones, can read a specific domain category.
-     * @deny (create) An authenticated user attempts to create a new domain category. This is denied because there is no admin role check.
-     * @principle Public Read, Admin-Only Writes (Admin role pending implementation).
-     */
-    match /domainCategories/{domainCategoryId} {
-      allow get, list: if true;
-
-      // CRITICAL: The application reasoning requires admin-only writes.
-      // However, there is no 'admin' field or custom claim to check against.
-      // All write access is denied as a secure default.
-      allow create, update, delete: if false; // TODO: Implement admin check (e.g., `request.auth.token.isAdmin == true`) once custom claims are set up.
+    // Helper function to check for admin custom claim
+    function isAdmin() {
+      return request.auth.token.isAdmin == true;
     }
 
-    /**
-     * @description Grants public read-only access to domains. Write access is fully restricted until an admin identification mechanism is implemented.
-     * @path /domains/{domainId}
-     * @allow (list) Any user, including unauthenticated ones, can list all domains.
-     * @deny (update) An authenticated user attempts to update a domain's metrics. This is denied because there is no admin role check.
-     * @principle Public Read, Admin-Only Writes (Admin role pending implementation).
-     */
+    // Domain Categories are publicly readable, but only admins can write.
+    match /domainCategories/{domainCategoryId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+
+    // Domains are publicly readable, but only admins can write.
     match /domains/{domainId} {
       allow get, list: if true;
-
-      // CRITICAL: The application reasoning requires admin-only writes.
-      // However, there is no 'admin' field or custom claim to check against.
-      // All write access is denied as a secure default.
-      allow create, update, delete: if false; // TODO: Implement admin check (e.g., `request.auth.token.isAdmin == true`) once custom claims are set up.
+      allow write: if isAdmin();
     }
   }
 }

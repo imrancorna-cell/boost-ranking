@@ -1,3 +1,4 @@
+'use client';
 import {
   Card,
   CardContent,
@@ -5,12 +6,21 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { getDomains, getCategories } from '@/lib/data';
-import { FolderKanban, Globe } from 'lucide-react';
+import { FolderKanban, Globe, Loader2 } from 'lucide-react';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { Domain, DomainCategory } from '@/lib/definitions';
 
-export default async function AdminDashboardPage() {
-  const domains = await getDomains();
-  const categories = await getCategories();
+export default function AdminDashboardPage() {
+  const firestore = useFirestore();
+  
+  const domainsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'domains') : null, [firestore]);
+  const categoriesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'domainCategories') : null, [firestore]);
+
+  const { data: domains, isLoading: domainsLoading } = useCollection<Domain>(domainsQuery);
+  const { data: categories, isLoading: categoriesLoading } = useCollection<DomainCategory>(categoriesQuery);
+
+  const isLoading = domainsLoading || categoriesLoading;
 
   return (
     <div className="space-y-6">
@@ -30,7 +40,7 @@ export default async function AdminDashboardPage() {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{domains.length}</div>
+            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">{domains?.length || 0}</div> }
             <p className="text-xs text-muted-foreground">
               Across all categories
             </p>
@@ -44,7 +54,7 @@ export default async function AdminDashboardPage() {
             <FolderKanban className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categories.length}</div>
+            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">{categories?.length || 0}</div>}
             <p className="text-xs text-muted-foreground">
               Domain groups configured
             </p>
@@ -55,7 +65,7 @@ export default async function AdminDashboardPage() {
       <Card>
         <CardHeader>
             <CardTitle>Welcome, Admin!</CardTitle>
-            <CardDescription>From this panel you can manage domain categories and add new domains to your portfolio.</CardDescription>
+            <CardDescription>From this panel you can manage domain categories and add new domains to your portfolio. After creating a user, you'll need to set their `isAdmin` custom claim to `true` to grant them admin access. This is typically done via a script using the Firebase Admin SDK.</CardDescription>
         </CardHeader>
         <CardContent>
             <p>Use the navigation on the left to get started.</p>

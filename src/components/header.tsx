@@ -1,17 +1,42 @@
+'use client';
+
 import Link from 'next/link';
-import { getSession } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { logout } from '@/lib/actions';
-import { LayoutDashboard, LogOut } from 'lucide-react';
+import { LayoutDashboard, LogOut, Loader2 } from 'lucide-react';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useEffect, useState } from 'react';
 
-async function AuthButton() {
-  const session = await getSession();
+function AuthButton() {
+  const auth = useAuth();
+  const { user, isUserLoading } = useUser();
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  if (session) {
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (user) {
+        const tokenResult = await user.getIdTokenResult();
+        setIsAdmin(!!tokenResult.claims.isAdmin);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, [user]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+  };
+
+  if (isUserLoading) {
+    return <Loader2 className="h-4 w-4 animate-spin" />;
+  }
+
+  if (user) {
     return (
       <div className="flex items-center gap-2">
-        {session.isAdmin && (
+        {isAdmin && (
           <Button asChild variant="ghost" size="sm">
             <Link href="/admin">
               <LayoutDashboard className="mr-2 h-4 w-4" />
@@ -19,12 +44,10 @@ async function AuthButton() {
             </Link>
           </Button>
         )}
-        <form action={logout}>
-          <Button variant="outline" size="sm">
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
-        </form>
+        <Button variant="outline" size="sm" onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
       </div>
     );
   }

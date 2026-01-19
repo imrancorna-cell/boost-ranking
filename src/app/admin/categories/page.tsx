@@ -3,8 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useTransition, useEffect } from 'react';
-import { addCategoryAction } from '@/lib/actions';
+import { useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,9 +40,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getCategories } from '@/lib/data';
-import type { DomainCategory } from '@/lib/definitions';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { addCategory } from '@/lib/data-service';
+import type { DomainCategory } from '@/lib/definitions';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 const categorySchema = z.object({
   name: z
@@ -51,10 +52,11 @@ const categorySchema = z.object({
     .min(3, { message: 'Category name must be at least 3 characters' }),
 });
 
-function AddCategoryDialog({ onCategoryAdded }: { onCategoryAdded: (newCategory: DomainCategory) => void }) {
+function AddCategoryDialog() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
+  const firestore = useFirestore();
 
   const form = useForm<z.infer<typeof categorySchema>>({
     resolver: zodResolver(categorySchema),
@@ -65,19 +67,18 @@ function AddCategoryDialog({ onCategoryAdded }: { onCategoryAdded: (newCategory:
 
   const onSubmit = (values: z.infer<typeof categorySchema>) => {
     startTransition(async () => {
-      const result = await addCategoryAction(values.name);
-      if (result.success && result.data) {
+      try {
+        await addCategory(firestore, values.name);
         toast({
           title: 'Success',
-          description: `Category "${result.data.name}" has been created.`,
+          description: `Category "${values.name}" has been created.`,
         });
-        onCategoryAdded(result.data as DomainCategory);
         setOpen(false);
         form.reset();
-      } else {
+      } catch (e: any) {
         toast({
           title: 'Error',
-          description: result.error || 'Failed to create category.',
+          description: e.message || 'Failed to create category.',
           variant: 'destructive',
         });
       }
@@ -134,23 +135,23 @@ function AddCategoryDialog({ onCategoryAdded }: { onCategoryAdded: (newCategory:
 }
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState<DomainCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
+  const categoriesQuery = useMemoFirebase(
+    () => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null,
+    [firestore]
+  );
+  const { data: categories, isLoading } = useCollection<DomainCategory>(categoriesQuery);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setLoading(true);
-      const fetchedCategories = await getCategories();
-      setCategories(fetchedCategories);
-      setLoading(false);
-    };
-    fetchCategories();
-  }, []);
+  const domainsQuery = useMemoFirebase(
+    () => firestore ? collection(firestore, 'domains') : null,
+    [firestore]
+  );
+  const { data: domains } = useCollection(domainsQuery);
 
-  const handleCategoryAdded = (newCategory: DomainCategory) => {
-    // Note: this is a mock update. In a real app, you'd re-fetch or use a more robust state management
-    setCategories(prev => [...prev, {...newCategory, domainCount: 0}]);
-  }
+  const domainCounts = (categories || []).reduce((acc, category) => {
+    const count = (domains || []).filter(d => d.categorySlug === category.slug).length;
+    return {...acc, [category.id]: count};
+  }, {} as Record<string, number>);
 
   return (
     <div className="space-y-6">
@@ -163,7 +164,7 @@ export default function AdminCategoriesPage() {
             View, create, and manage your domain categories.
           </p>
         </div>
-        <AddCategoryDialog onCategoryAdded={handleCategoryAdded} />
+        <AddCategoryDialog />
       </div>
 
       <Card>
@@ -183,7 +184,7 @@ export default function AdminCategoriesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-4 w-32" /></TableCell>
@@ -191,12 +192,12 @@ export default function AdminCategoriesPage() {
                     <TableCell className="text-right"><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
                   </TableRow>
                 ))
-              ) : categories.length > 0 ? (
+              ) : categories && categories.length > 0 ? (
                 categories.map((category) => (
                   <TableRow key={category.id}>
                     <TableCell className="font-medium">{category.name}</TableCell>
                     <TableCell>{category.slug}</TableCell>
-                    <TableCell className="text-right">{category.domainCount}</TableCell>
+                    <TableCell className="text-right">{domainCounts[category.id] || 0}</TableCell>
                   </TableRow>
                 ))
               ) : (

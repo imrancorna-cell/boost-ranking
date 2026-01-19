@@ -2,7 +2,7 @@ export type DomainCategory = {
   id: string;
   name: string;
   slug: string;
-  domainCount: number;
+  domainCount?: number;
 };
 
 export type Domain = {
@@ -13,9 +13,4 @@ export type Domain = {
   dr: number; // Domain Rating
   ss: number; // Spam Score
   categorySlug: string;
-};
-
-export type UserSession = {
-  username: string;
-  isAdmin: boolean;
 };
