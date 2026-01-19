@@ -50,7 +50,7 @@ export default function AdminLayout({
           if (idTokenResult.claims.isAdmin) {
             setIsAuthorized(true);
           } else {
-            router.push('/become-admin'); // Redirect non-admins to instructions
+            router.push('/'); // Redirect non-admins to homepage
           }
           setAuthChecked(true);
         });
