@@ -8,22 +8,24 @@ import {
   Firestore,
   getDocs,
   deleteDoc,
+  query,
 } from 'firebase/firestore';
 import type { Domain } from './definitions';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 
-export async function addCategory(firestore: Firestore, name: string) {
+export function addCategory(firestore: Firestore, name: string) {
   const slug = name.toLowerCase().replace(/\s+/g, '-');
   const newCategory = { name, slug };
 
   const categoriesCollection = collection(firestore, 'domainCategories');
-  const docRef = await addDoc(categoriesCollection, newCategory);
-  return { ...newCategory, id: docRef.id };
+  // No await, returns a promise but we don't block on it.
+  return addDocumentNonBlocking(categoriesCollection, newCategory);
 }
 
-export async function addDomain(firestore: Firestore, domain: Domain) {
+export function addDomain(firestore: Firestore, domain: Domain) {
     const domainsCollection = collection(firestore, 'domains');
-    const docRef = await addDoc(domainsCollection, domain);
-    return { ...domain, id: docRef.id };
+    // No await
+    return addDocumentNonBlocking(domainsCollection, domain);
 }
 
 export async function addBulkDomains(firestore: Firestore, domains: Domain[]) {
@@ -35,19 +37,23 @@ export async function addBulkDomains(firestore: Firestore, domains: Domain[]) {
         batch.set(newDocRef, domainData);
     });
 
+    // Batch writes are atomic and should be awaited.
+    // The error handling for batch writes is more complex and currently
+    // will be handled by the component's try/catch.
     await batch.commit();
 
     return { success: true };
 }
 
-export async function deleteDomain(firestore: Firestore, domainId: string) {
+export function deleteDomain(firestore: Firestore, domainId: string) {
   const domainRef = doc(firestore, 'domains', domainId);
-  await deleteDoc(domainRef);
+  // No await
+  deleteDocumentNonBlocking(domainRef);
 }
 
 export async function deleteAllDomains(firestore: Firestore) {
   const domainsCollection = collection(firestore, 'domains');
-  const domainsSnapshot = await getDocs(domainsCollection);
+  const domainsSnapshot = await getDocs(query(domainsCollection));
   if (domainsSnapshot.empty) return;
 
   const batch = writeBatch(firestore);

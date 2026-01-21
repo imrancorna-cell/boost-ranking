@@ -76,10 +76,9 @@ function AddDomainForm({ categories }: { categories: WithId<DomainCategory>[] })
   });
 
   const onSubmit = (values: z.infer<typeof domainSchema>) => {
-    startTransition(async () => {
-      try {
-        await addDomain(firestore, values);
-        toast({ title: 'Success', description: 'Domain added successfully.' });
+    try {
+        addDomain(firestore, values);
+        toast({ title: 'Success', description: 'Domain is being added.' });
         form.reset();
       } catch (e: any) {
         let description = e.message || 'Failed to add domain.';
@@ -92,7 +91,6 @@ function AddDomainForm({ categories }: { categories: WithId<DomainCategory>[] })
           variant: 'destructive',
         });
       }
-    });
   };
 
   return (
@@ -311,12 +309,12 @@ export default function AdminDomainsPage() {
 
   const getCategoryName = (slug: string) => categories?.find(c => c.slug === slug)?.name || slug;
 
-  const handleDeleteDomain = async (domainId: string) => {
+  const handleDeleteDomain = (domainId: string) => {
     try {
-      await deleteDomain(firestore, domainId);
+      deleteDomain(firestore, domainId);
       toast({
         title: 'Success',
-        description: 'The domain was deleted successfully.',
+        description: 'The domain is being deleted.',
       });
     } catch (e: any) {
       let description = e.message || 'Failed to delete domain.';
