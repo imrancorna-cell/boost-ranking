@@ -1,7 +1,6 @@
 export type DomainCategory = {
   name: string;
   slug: string;
-  domainCount?: number;
 };
 
 export type Domain = {
