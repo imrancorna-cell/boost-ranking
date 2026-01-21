@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -36,9 +36,20 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { addDomain, addBulkDomains } from '@/lib/data-service';
+import { addDomain, addBulkDomains, deleteDomain, deleteAllDomains } from '@/lib/data-service';
 import type { Domain, DomainCategory } from '@/lib/definitions';
 import { collection, query, orderBy } from 'firebase/firestore';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const domainSchema = z.object({
   url: z.string().min(3, { message: 'URL is required' }),
@@ -279,6 +290,8 @@ function BulkAddForm({ categories }: { categories: DomainCategory[] }) {
 
 export default function AdminDomainsPage() {
   const firestore = useFirestore();
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
   
   const categoriesQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null, [firestore]);
   const domainsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'domains'), orderBy('url')) : null, [firestore]);
@@ -289,6 +302,29 @@ export default function AdminDomainsPage() {
   const isLoading = categoriesLoading || domainsLoading;
 
   const getCategoryName = (slug: string) => categories?.find(c => c.slug === slug)?.name || slug;
+
+  const handleDeleteDomain = (domainId: string) => {
+    deleteDomain(firestore, domainId);
+    toast({
+        title: 'Domain delete initiated',
+        description: 'The domain will be removed shortly.',
+    });
+  };
+
+  const handleDeleteAllDomains = () => {
+      startTransition(async () => {
+        try {
+          await deleteAllDomains(firestore);
+          toast({ title: 'Success', description: 'All domains have been deleted.' });
+        } catch (e: any) {
+          toast({
+            title: 'Error',
+            description: e.message || 'Failed to delete all domains.',
+            variant: 'destructive',
+          });
+        }
+      });
+  };
 
   return (
     <div className="space-y-6">
@@ -320,7 +356,32 @@ export default function AdminDomainsPage() {
 
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4">All Domains</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">All Domains</h2>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm" disabled={isPending || !domains || domains.length === 0}>
+                  {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                  Delete All
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete all {domains?.length} domains.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteAllDomains}>
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -329,6 +390,7 @@ export default function AdminDomainsPage() {
                   <TableHead>Category</TableHead>
                   <TableHead>DA</TableHead>
                   <TableHead>DR</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -339,6 +401,7 @@ export default function AdminDomainsPage() {
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
                     </TableRow>
                   ))
                 ) : domains && domains.length > 0 ? (
@@ -348,11 +411,35 @@ export default function AdminDomainsPage() {
                       <TableCell>{getCategoryName(domain.categorySlug)}</TableCell>
                       <TableCell>{domain.da}</TableCell>
                       <TableCell>{domain.dr}</TableCell>
+                      <TableCell className="text-right">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <span className="sr-only">Delete domain</span>
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete the domain "{domain.url}".
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteDomain(domain.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={4} className="h-24 text-center">
+                        <TableCell colSpan={5} className="h-24 text-center">
                             No domains found.
                         </TableCell>
                     </TableRow>

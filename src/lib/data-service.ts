@@ -6,8 +6,9 @@ import {
   doc,
   writeBatch,
   Firestore,
+  getDocs,
 } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase';
+import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import type { Domain } from './definitions';
 
 export async function addCategory(firestore: Firestore, name: string) {
@@ -43,4 +44,21 @@ export async function addBulkDomains(firestore: Firestore, domains: Omit<Domain,
     await batch.commit();
 
     return { success: true };
+}
+
+export function deleteDomain(firestore: Firestore, domainId: string) {
+  const domainRef = doc(firestore, 'domains', domainId);
+  deleteDocumentNonBlocking(domainRef);
+}
+
+export async function deleteAllDomains(firestore: Firestore) {
+  const domainsCollection = collection(firestore, 'domains');
+  const domainsSnapshot = await getDocs(domainsCollection);
+  if (domainsSnapshot.empty) return;
+
+  const batch = writeBatch(firestore);
+  domainsSnapshot.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+  await batch.commit();
 }
