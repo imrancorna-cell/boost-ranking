@@ -82,9 +82,13 @@ function AddDomainForm({ categories }: { categories: WithId<DomainCategory>[] })
         toast({ title: 'Success', description: 'Domain added successfully.' });
         form.reset();
       } catch (e: any) {
+        let description = e.message || 'Failed to add domain.';
+        if (e.code === 'permission-denied') {
+          description = "Admin privileges required. Please use the /become-admin page to grant access.";
+        }
         toast({
           title: 'Error',
-          description: e.message || 'Failed to add domain.',
+          description,
           variant: 'destructive',
         });
       }
@@ -226,9 +230,13 @@ function BulkAddForm({ categories }: { categories: WithId<DomainCategory>[] }) {
         toast({ title: 'Success', description: 'Bulk domains processed.' });
         form.reset();
       } catch (e: any) {
+        let description = e.message || 'Failed to process bulk domains.';
+        if (e.code === 'permission-denied') {
+          description = "Admin privileges required. Please use the /become-admin page to grant access.";
+        }
         toast({
           title: 'Error',
-          description: e.message || 'Failed to process bulk domains.',
+          description,
           variant: 'destructive',
         });
       }
@@ -311,9 +319,13 @@ export default function AdminDomainsPage() {
         description: 'The domain was deleted successfully.',
       });
     } catch (e: any) {
+      let description = e.message || 'Failed to delete domain.';
+      if (e.code === 'permission-denied') {
+          description = "Admin privileges required. Please use the /become-admin page to grant access.";
+      }
       toast({
         title: 'Error',
-        description: e.message || 'Failed to delete domain.',
+        description,
         variant: 'destructive',
       });
     }
@@ -325,9 +337,13 @@ export default function AdminDomainsPage() {
           await deleteAllDomains(firestore);
           toast({ title: 'Success', description: 'All domains have been deleted.' });
         } catch (e: any) {
+          let description = e.message || 'Failed to delete all domains.';
+          if (e.code === 'permission-denied') {
+            description = "Admin privileges required. Please use the /become-admin page to grant access.";
+          }
           toast({
             title: 'Error',
-            description: e.message || 'Failed to delete all domains.',
+            description,
             variant: 'destructive',
           });
         }

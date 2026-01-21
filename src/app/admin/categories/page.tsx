@@ -41,9 +41,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, type WithId } from '@/firebase';
 import { addCategory } from '@/lib/data-service';
-import type { DomainCategory } from '@/lib/definitions';
+import type { Domain, DomainCategory } from '@/lib/definitions';
 import { collection, query, orderBy } from 'firebase/firestore';
 
 const categorySchema = z.object({
@@ -76,9 +76,13 @@ function AddCategoryDialog() {
         setOpen(false);
         form.reset();
       } catch (e: any) {
+        let description = e.message || 'Failed to create category.';
+        if (e.code === 'permission-denied') {
+          description = "Admin privileges required. Please use the /become-admin page to grant access.";
+        }
         toast({
           title: 'Error',
-          description: e.message || 'Failed to create category.',
+          description,
           variant: 'destructive',
         });
       }
@@ -146,7 +150,7 @@ export default function AdminCategoriesPage() {
     () => firestore ? collection(firestore, 'domains') : null,
     [firestore]
   );
-  const { data: domains } = useCollection(domainsQuery);
+  const { data: domains } = useCollection<Domain>(domainsQuery);
 
   const domainCounts = (categories || []).reduce((acc, category) => {
     const count = (domains || []).filter(d => d.categorySlug === category.slug).length;
