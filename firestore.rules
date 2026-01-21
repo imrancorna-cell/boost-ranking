@@ -4,7 +4,7 @@ service cloud.firestore {
 
     // Helper function to check for admin custom claim
     function isAdmin() {
-      return request.auth.token.isAdmin == true;
+      return request.auth != null && request.auth.token.isAdmin == true;
     }
 
     // Domain Categories are publicly readable, but only admins can write.
