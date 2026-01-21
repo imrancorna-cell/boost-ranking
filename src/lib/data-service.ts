@@ -7,8 +7,8 @@ import {
   writeBatch,
   Firestore,
   getDocs,
+  deleteDoc,
 } from 'firebase/firestore';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import type { Domain } from './definitions';
 
 export async function addCategory(firestore: Firestore, name: string) {
@@ -16,19 +16,14 @@ export async function addCategory(firestore: Firestore, name: string) {
   const newCategory = { name, slug };
 
   const categoriesCollection = collection(firestore, 'domainCategories');
-  // This is a non-blocking write
-  addDocumentNonBlocking(categoriesCollection, newCategory);
-  
-  // We can't easily return the ID here because it's non-blocking,
-  // but we can return the data we sent. The UI can optimistically update.
-  return { ...newCategory, id: 'temp-' + Date.now() };
+  const docRef = await addDoc(categoriesCollection, newCategory);
+  return { ...newCategory, id: docRef.id };
 }
 
 export async function addDomain(firestore: Firestore, domain: Omit<Domain, 'id'>) {
     const domainsCollection = collection(firestore, 'domains');
-    // Non-blocking write
-    addDocumentNonBlocking(domainsCollection, domain);
-    return { ...domain, id: 'temp-' + Date.now() };
+    const docRef = await addDoc(domainsCollection, domain);
+    return { ...domain, id: docRef.id };
 }
 
 export async function addBulkDomains(firestore: Firestore, domains: Omit<Domain, 'id'>[]) {
@@ -40,15 +35,14 @@ export async function addBulkDomains(firestore: Firestore, domains: Omit<Domain,
         batch.set(newDocRef, domainData);
     });
 
-    // Commit the batch
     await batch.commit();
 
     return { success: true };
 }
 
-export function deleteDomain(firestore: Firestore, domainId: string) {
+export async function deleteDomain(firestore: Firestore, domainId: string) {
   const domainRef = doc(firestore, 'domains', domainId);
-  deleteDocumentNonBlocking(domainRef);
+  await deleteDoc(domainRef);
 }
 
 export async function deleteAllDomains(firestore: Firestore) {

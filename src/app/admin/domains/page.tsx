@@ -303,12 +303,20 @@ export default function AdminDomainsPage() {
 
   const getCategoryName = (slug: string) => categories?.find(c => c.slug === slug)?.name || slug;
 
-  const handleDeleteDomain = (domainId: string) => {
-    deleteDomain(firestore, domainId);
-    toast({
-        title: 'Domain delete initiated',
-        description: 'The domain will be removed shortly.',
-    });
+  const handleDeleteDomain = async (domainId: string) => {
+    try {
+      await deleteDomain(firestore, domainId);
+      toast({
+        title: 'Success',
+        description: 'The domain was deleted successfully.',
+      });
+    } catch (e: any) {
+      toast({
+        title: 'Error',
+        description: e.message || 'Failed to delete domain.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleDeleteAllDomains = () => {
