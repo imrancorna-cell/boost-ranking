@@ -20,13 +20,13 @@ export async function addCategory(firestore: Firestore, name: string) {
   return { ...newCategory, id: docRef.id };
 }
 
-export async function addDomain(firestore: Firestore, domain: Omit<Domain, 'id'>) {
+export async function addDomain(firestore: Firestore, domain: Domain) {
     const domainsCollection = collection(firestore, 'domains');
     const docRef = await addDoc(domainsCollection, domain);
     return { ...domain, id: docRef.id };
 }
 
-export async function addBulkDomains(firestore: Firestore, domains: Omit<Domain, 'id'>[]) {
+export async function addBulkDomains(firestore: Firestore, domains: Domain[]) {
     const batch = writeBatch(firestore);
     const domainsCollection = collection(firestore, 'domains');
     

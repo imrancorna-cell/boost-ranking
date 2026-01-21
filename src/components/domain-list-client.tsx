@@ -1,6 +1,7 @@
 'use client';
 
 import type { Domain } from '@/lib/definitions';
+import type { WithId } from '@/firebase';
 import { useMemo, useState } from 'react';
 import {
   Table,
@@ -25,14 +26,16 @@ import {
 import { PaginationControls } from './pagination-controls';
 import { Card, CardContent } from './ui/card';
 
+type SortableDomain = WithId<Domain>;
+
 type SortConfig = {
-  key: keyof Domain;
+  key: keyof SortableDomain;
   direction: 'ascending' | 'descending';
 } | null;
 
 const ITEMS_PER_PAGE = 10;
 
-export function DomainListClient({ domains }: { domains: Domain[] }) {
+export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
   const [filter, setFilter] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,7 +86,7 @@ export function DomainListClient({ domains }: { domains: Domain[] }) {
     return sortedDomains.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [sortedDomains, currentPage]);
 
-  const requestSort = (key: keyof Domain) => {
+  const requestSort = (key: keyof SortableDomain) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (
       sortConfig &&
@@ -100,12 +103,12 @@ export function DomainListClient({ domains }: { domains: Domain[] }) {
 
   type ColumnKeys = keyof typeof visibleColumns;
 
-  const columnConfig: { id: ColumnKeys, label: string }[] = [
-    { id: 'url', label: 'URL' },
-    { id: 'da', label: 'DA' },
-    { id: 'dr', label: 'DR' },
-    { id: 'tf', label: 'TF' },
-    { id: 'ss', label: 'Spam' },
+  const columnConfig: { id: ColumnKeys, label: string, sortKey: keyof SortableDomain }[] = [
+    { id: 'url', label: 'URL', sortKey: 'url' },
+    { id: 'da', label: 'DA', sortKey: 'da' },
+    { id: 'dr', label: 'DR', sortKey: 'dr' },
+    { id: 'tf', label: 'TF', sortKey: 'tf' },
+    { id: 'ss', label: 'Spam', sortKey: 'ss' },
   ];
 
   return (
@@ -151,7 +154,7 @@ export function DomainListClient({ domains }: { domains: Domain[] }) {
                    <TableHead key={column.id}>
                    <Button
                      variant="ghost"
-                     onClick={() => requestSort(column.id as keyof Domain)}
+                     onClick={() => requestSort(column.sortKey)}
                    >
                      {column.label}
                      <ArrowUpDown className="ml-2 h-4 w-4" />

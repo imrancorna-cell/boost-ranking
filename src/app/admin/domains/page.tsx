@@ -35,7 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, type WithId } from '@/firebase';
 import { addDomain, addBulkDomains, deleteDomain, deleteAllDomains } from '@/lib/data-service';
 import type { Domain, DomainCategory } from '@/lib/definitions';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -65,7 +65,7 @@ const bulkSchema = z.object({
   categorySlug: z.string().min(1, { message: 'Category is required' }),
 });
 
-function AddDomainForm({ categories }: { categories: DomainCategory[] }) {
+function AddDomainForm({ categories }: { categories: WithId<DomainCategory>[] }) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const firestore = useFirestore();
@@ -197,7 +197,7 @@ function AddDomainForm({ categories }: { categories: DomainCategory[] }) {
   );
 }
 
-function BulkAddForm({ categories }: { categories: DomainCategory[] }) {
+function BulkAddForm({ categories }: { categories: WithId<DomainCategory>[] }) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const firestore = useFirestore();
@@ -211,7 +211,7 @@ function BulkAddForm({ categories }: { categories: DomainCategory[] }) {
     startTransition(async () => {
       try {
         const lines = values.data.split('\n').filter(line => line.trim() !== '');
-        const domains: Omit<Domain, 'id'>[] = lines.map(line => {
+        const domains: Domain[] = lines.map(line => {
             const [url, da, tf, dr, ss] = line.split(',').map(s => s.trim());
             return {
                 url,
