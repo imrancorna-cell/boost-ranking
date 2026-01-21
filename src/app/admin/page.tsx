@@ -14,12 +14,20 @@ import { useMemo } from 'react';
 
 export default function AdminDashboardPage() {
   const firestore = useFirestore();
-  
-  const domainsQuery = useMemo(() => firestore ? collection(firestore, 'domains') : null, [firestore]);
-  const categoriesQuery = useMemo(() => firestore ? collection(firestore, 'domainCategories') : null, [firestore]);
 
-  const { data: domains, isLoading: domainsLoading } = useCollection<Domain>(domainsQuery);
-  const { data: categories, isLoading: categoriesLoading } = useCollection<DomainCategory>(categoriesQuery);
+  const domainsQuery = useMemo(
+    () => (firestore ? collection(firestore, 'domains') : null),
+    [firestore]
+  );
+  const categoriesQuery = useMemo(
+    () => (firestore ? collection(firestore, 'domaincategorie') : null),
+    [firestore]
+  );
+
+  const { data: domains, isLoading: domainsLoading } =
+    useCollection<Domain>(domainsQuery);
+  const { data: categories, isLoading: categoriesLoading } =
+    useCollection<DomainCategory>(categoriesQuery);
 
   const isLoading = domainsLoading || categoriesLoading;
 
@@ -41,7 +49,11 @@ export default function AdminDashboardPage() {
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">{domains?.length || 0}</div> }
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <div className="text-2xl font-bold">{domains?.length || 0}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Across all categories
             </p>
@@ -55,24 +67,35 @@ export default function AdminDashboardPage() {
             <FolderKanban className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : <div className="text-2xl font-bold">{categories?.length || 0}</div>}
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <div className="text-2xl font-bold">
+                {categories?.length || 0}
+              </div>
+            )}
             <p className="text-xs text-muted-foreground">
               Domain groups configured
             </p>
           </CardContent>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
-            <CardTitle>Welcome, Admin!</CardTitle>
-            <CardDescription>From this panel you can manage domain categories and add new domains to your portfolio. After creating a user, you'll need to set their `isAdmin` custom claim to `true` to grant them admin access. This is typically done via a script using the Firebase Admin SDK.</CardDescription>
+          <CardTitle>Welcome, Admin!</CardTitle>
+          <CardDescription>
+            From this panel you can manage domain categories and add new domains
+            to your portfolio. After creating a user, you'll need to set their{' '}
+            <code>isAdmin</code> custom claim to <code>true</code> to grant them
+            admin access. This is typically done via a script using the Firebase
+            Admin SDK.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-            <p>Use the navigation on the left to get started.</p>
+          <p>Use the navigation on the left to get started.</p>
         </CardContent>
       </Card>
-
     </div>
   );
 }

@@ -67,25 +67,26 @@ function AddCategoryDialog() {
 
   const onSubmit = (values: z.infer<typeof categorySchema>) => {
     startTransition(async () => {
-        try {
-            await addCategory(firestore, values.name);
-            toast({
-              title: 'Success',
-              description: `Category "${values.name}" has been created.`,
-            });
-            setOpen(false);
-            form.reset();
-        } catch (e: any) {
-            let description = e.message || 'Failed to create category.';
-            if (e.code === 'permission-denied') {
-              description = "Admin privileges required. Please use the /become-admin page to grant access.";
-            }
-            toast({
-              title: 'Error',
-              description,
-              variant: 'destructive',
-            });
+      try {
+        await addCategory(firestore, values.name);
+        toast({
+          title: 'Success',
+          description: `Category "${values.name}" has been created.`,
+        });
+        setOpen(false);
+        form.reset();
+      } catch (e: any) {
+        let description = e.message || 'Failed to create category.';
+        if (e.code === 'permission-denied') {
+          description =
+            'Admin privileges required. Please use the /become-admin page to grant access.';
         }
+        toast({
+          title: 'Error',
+          description,
+          variant: 'destructive',
+        });
+      }
     });
   };
 
@@ -141,21 +142,30 @@ function AddCategoryDialog() {
 export default function AdminCategoriesPage() {
   const firestore = useFirestore();
   const categoriesQuery = useMemo(
-    () => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null,
+    () =>
+      firestore
+        ? query(collection(firestore, 'domaincategorie'), orderBy('name'))
+        : null,
     [firestore]
   );
-  const { data: categories, isLoading } = useCollection<DomainCategory>(categoriesQuery);
+  const { data: categories, isLoading } =
+    useCollection<DomainCategory>(categoriesQuery);
 
   const domainsQuery = useMemo(
-    () => firestore ? collection(firestore, 'domains') : null,
+    () => (firestore ? collection(firestore, 'domains') : null),
     [firestore]
   );
   const { data: domains } = useCollection<Domain>(domainsQuery);
 
-  const domainCounts = (categories || []).reduce((acc, category) => {
-    const count = (domains || []).filter(d => d.categorySlug === category.slug).length;
-    return {...acc, [category.id]: count};
-  }, {} as Record<string, number>);
+  const domainCounts = (categories || []).reduce(
+    (acc, category) => {
+      const count = (domains || []).filter(
+        (d) => d.categorySlug === category.slug
+      ).length;
+      return { ...acc, [category.id]: count };
+    },
+    {} as Record<string, number>
+  );
 
   return (
     <div className="space-y-6">
@@ -191,17 +201,27 @@ export default function AdminCategoriesPage() {
               {isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-4 w-8 ml-auto" />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : categories && categories.length > 0 ? (
                 categories.map((category) => (
                   <TableRow key={category.id}>
-                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {category.name}
+                    </TableCell>
                     <TableCell>{category.slug}</TableCell>
-                    <TableCell className="text-right">{domainCounts[category.id] || 0}</TableCell>
+                    <TableCell className="text-right">
+                      {domainCounts[category.id] || 0}
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (

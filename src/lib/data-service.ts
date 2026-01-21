@@ -16,26 +16,26 @@ export async function addCategory(firestore: Firestore, name: string) {
   const slug = name.toLowerCase().replace(/\s+/g, '-');
   const newCategory = { name, slug };
 
-  const categoriesCollection = collection(firestore, 'domainCategories');
+  const categoriesCollection = collection(firestore, 'domaincategorie');
   await addDoc(categoriesCollection, newCategory);
 }
 
 export async function addDomain(firestore: Firestore, domain: Domain) {
-    const domainsCollection = collection(firestore, 'domains');
-    await addDoc(domainsCollection, domain);
+  const domainsCollection = collection(firestore, 'domains');
+  await addDoc(domainsCollection, domain);
 }
 
 export async function addBulkDomains(firestore: Firestore, domains: Domain[]) {
-    const batch = writeBatch(firestore);
-    const domainsCollection = collection(firestore, 'domains');
-    
-    domains.forEach(domainData => {
-        const newDocRef = doc(domainsCollection);
-        batch.set(newDocRef, domainData);
-    });
+  const batch = writeBatch(firestore);
+  const domainsCollection = collection(firestore, 'domains');
 
-    await batch.commit();
-    return { success: true };
+  domains.forEach((domainData) => {
+    const newDocRef = doc(domainsCollection);
+    batch.set(newDocRef, domainData);
+  });
+
+  await batch.commit();
+  return { success: true };
 }
 
 export async function deleteDomain(firestore: Firestore, domainId: string) {

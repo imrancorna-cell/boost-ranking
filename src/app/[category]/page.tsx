@@ -16,7 +16,7 @@ export default function CategoryPage() {
   const firestore = useFirestore();
 
   const allCategoriesQuery = useMemo(
-    () => (firestore ? collection(firestore, 'domainCategories') : null),
+    () => (firestore ? collection(firestore, 'domaincategorie') : null),
     [firestore]
   );
 

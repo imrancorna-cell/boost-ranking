@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { ArrowRight, Folder, Globe, Shield, Loader2 } from 'lucide-react';
 import type { DomainCategory, Domain } from '@/lib/definitions';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, type WithId } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useMemo } from 'react';
 
@@ -20,13 +20,21 @@ const iconMap: { [key: string]: React.ReactNode } = {
   'other-domains': <Folder className="h-8 w-8 text-primary" />,
 };
 
-function CategoryCard({ category, domainCount }: { category: DomainCategory; domainCount: number }) {
+function CategoryCard({
+  category,
+  domainCount,
+}: {
+  category: WithId<DomainCategory>;
+  domainCount: number;
+}) {
   return (
     <Link href={`/${category.slug}`} className="group block">
       <Card className="h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
         <CardHeader>
           <div className="flex items-center justify-between">
-            {iconMap[category.slug] || <Folder className="h-8 w-8 text-primary" />}
+            {iconMap[category.slug] || (
+              <Folder className="h-8 w-8 text-primary" />
+            )}
             <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1" />
           </div>
         </CardHeader>
@@ -45,23 +53,30 @@ export default function Home() {
   const firestore = useFirestore();
 
   const categoriesQuery = useMemo(
-    () => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null,
+    () =>
+      firestore
+        ? query(collection(firestore, 'domaincategorie'), orderBy('name'))
+        : null,
     [firestore]
   );
   const domainsQuery = useMemo(
-    () => firestore ? collection(firestore, 'domains') : null,
+    () => (firestore ? collection(firestore, 'domains') : null),
     [firestore]
   );
 
-  const { data: categories, isLoading: categoriesLoading } = useCollection<DomainCategory>(categoriesQuery);
-  const { data: domains } = useCollection<Domain>(domainsQuery);
+  const { data: categories, isLoading: categoriesLoading } =
+    useCollection<WithId<DomainCategory>>(categoriesQuery);
+  const { data: domains } = useCollection<WithId<Domain>>(domainsQuery);
 
   const categoryDomainCounts = useMemo(() => {
     if (!domains) return {};
-    return domains.reduce((acc, domain) => {
-      acc[domain.categorySlug] = (acc[domain.categorySlug] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    return domains.reduce(
+      (acc, domain) => {
+        acc[domain.categorySlug] = (acc[domain.categorySlug] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
   }, [domains]);
 
   return (
@@ -85,12 +100,16 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           {categoriesLoading ? (
             <div className="flex justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {categories?.map((category) => (
-                <CategoryCard key={category.id} category={category} domainCount={categoryDomainCounts[category.slug] || 0}/>
+                <CategoryCard
+                  key={category.id}
+                  category={category}
+                  domainCount={categoryDomainCounts[category.slug] || 0}
+                />
               ))}
             </div>
           )}

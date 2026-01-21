@@ -36,7 +36,12 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useFirestore, type WithId } from '@/firebase';
-import { addDomain, addBulkDomains, deleteDomain, deleteAllDomains } from '@/lib/data-service';
+import {
+  addDomain,
+  addBulkDomains,
+  deleteDomain,
+  deleteAllDomains,
+} from '@/lib/data-service';
 import type { Domain, DomainCategory } from '@/lib/definitions';
 import { collection, query, orderBy } from 'firebase/firestore';
 import {
@@ -65,7 +70,11 @@ const bulkSchema = z.object({
   categorySlug: z.string().min(1, { message: 'Category is required' }),
 });
 
-function AddDomainForm({ categories }: { categories: WithId<DomainCategory>[] }) {
+function AddDomainForm({
+  categories,
+}: {
+  categories: WithId<DomainCategory>[];
+}) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const firestore = useFirestore();
@@ -77,21 +86,22 @@ function AddDomainForm({ categories }: { categories: WithId<DomainCategory>[] })
 
   const onSubmit = (values: z.infer<typeof domainSchema>) => {
     startTransition(async () => {
-        try {
-            await addDomain(firestore, values);
-            toast({ title: 'Success', description: 'Domain added successfully.' });
-            form.reset();
-          } catch (e: any) {
-            let description = e.message || 'Failed to add domain.';
-            if (e.code === 'permission-denied') {
-              description = "Admin privileges required. Please use the /become-admin page to grant access.";
-            }
-            toast({
-              title: 'Error',
-              description,
-              variant: 'destructive',
-            });
-          }
+      try {
+        await addDomain(firestore, values);
+        toast({ title: 'Success', description: 'Domain added successfully.' });
+        form.reset();
+      } catch (e: any) {
+        let description = e.message || 'Failed to add domain.';
+        if (e.code === 'permission-denied') {
+          description =
+            'Admin privileges required. Please use the /become-admin page to grant access.';
+        }
+        toast({
+          title: 'Error',
+          description,
+          variant: 'destructive',
+        });
+      }
     });
   };
 
@@ -214,17 +224,19 @@ function BulkAddForm({ categories }: { categories: WithId<DomainCategory>[] }) {
   const onSubmit = (values: z.infer<typeof bulkSchema>) => {
     startTransition(async () => {
       try {
-        const lines = values.data.split('\n').filter(line => line.trim() !== '');
-        const domains: Domain[] = lines.map(line => {
-            const [url, da, tf, dr, ss] = line.split(',').map(s => s.trim());
-            return {
-                url,
-                da: parseInt(da) || 0,
-                tf: parseInt(tf) || 0,
-                dr: parseInt(dr) || 0,
-                ss: parseInt(ss) || 0,
-                categorySlug: values.categorySlug,
-            };
+        const lines = values.data
+          .split('\n')
+          .filter((line) => line.trim() !== '');
+        const domains: Domain[] = lines.map((line) => {
+          const [url, da, tf, dr, ss] = line.split(',').map((s) => s.trim());
+          return {
+            url,
+            da: parseInt(da) || 0,
+            tf: parseInt(tf) || 0,
+            dr: parseInt(dr) || 0,
+            ss: parseInt(ss) || 0,
+            categorySlug: values.categorySlug,
+          };
         });
         await addBulkDomains(firestore, domains);
         toast({ title: 'Success', description: 'Bulk domains processed.' });
@@ -232,7 +244,8 @@ function BulkAddForm({ categories }: { categories: WithId<DomainCategory>[] }) {
       } catch (e: any) {
         let description = e.message || 'Failed to process bulk domains.';
         if (e.code === 'permission-denied') {
-          description = "Admin privileges required. Please use the /become-admin page to grant access.";
+          description =
+            'Admin privileges required. Please use the /become-admin page to grant access.';
         }
         toast({
           title: 'Error',
@@ -300,63 +313,87 @@ export default function AdminDomainsPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  
-  const categoriesQuery = useMemo(() => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null, [firestore]);
-  const domainsQuery = useMemo(() => firestore ? query(collection(firestore, 'domains'), orderBy('url')) : null, [firestore]);
 
-  const { data: categories, isLoading: categoriesLoading } = useCollection<DomainCategory>(categoriesQuery);
-  const { data: domains, isLoading: domainsLoading } = useCollection<Domain>(domainsQuery);
-  
+  const categoriesQuery = useMemo(
+    () =>
+      firestore
+        ? query(collection(firestore, 'domaincategorie'), orderBy('name'))
+        : null,
+    [firestore]
+  );
+  const domainsQuery = useMemo(
+    () =>
+      firestore
+        ? query(collection(firestore, 'domains'), orderBy('url'))
+        : null,
+    [firestore]
+  );
+
+  const { data: categories, isLoading: categoriesLoading } =
+    useCollection<DomainCategory>(categoriesQuery);
+  const { data: domains, isLoading: domainsLoading } =
+    useCollection<Domain>(domainsQuery);
+
   const isLoading = categoriesLoading || domainsLoading;
 
-  const getCategoryName = (slug: string) => categories?.find(c => c.slug === slug)?.name || slug;
+  const getCategoryName = (slug: string) =>
+    categories?.find((c) => c.slug === slug)?.name || slug;
 
   const handleDeleteDomain = (domainId: string) => {
     startTransition(async () => {
-        try {
-            await deleteDomain(firestore, domainId);
-            toast({
-              title: 'Success',
-              description: 'The domain has been deleted.',
-            });
-          } catch (e: any) {
-            let description = e.message || 'Failed to delete domain.';
-            if (e.code === 'permission-denied') {
-                description = "Admin privileges required. Please use the /become-admin page to grant access.";
-            }
-            toast({
-              title: 'Error',
-              description,
-              variant: 'destructive',
-            });
-          }
+      try {
+        await deleteDomain(firestore, domainId);
+        toast({
+          title: 'Success',
+          description: 'The domain has been deleted.',
+        });
+      } catch (e: any) {
+        let description = e.message || 'Failed to delete domain.';
+        if (e.code === 'permission-denied') {
+          description =
+            'Admin privileges required. Please use the /become-admin page to grant access.';
+        }
+        toast({
+          title: 'Error',
+          description,
+          variant: 'destructive',
+        });
+      }
     });
   };
 
   const handleDeleteAllDomains = () => {
-      startTransition(async () => {
-        try {
-          await deleteAllDomains(firestore);
-          toast({ title: 'Success', description: 'All domains have been deleted.' });
-        } catch (e: any) {
-          let description = e.message || 'Failed to delete all domains.';
-          if (e.code === 'permission-denied') {
-            description = "Admin privileges required. Please use the /become-admin page to grant access.";
-          }
-          toast({
-            title: 'Error',
-            description,
-            variant: 'destructive',
-          });
+    startTransition(async () => {
+      try {
+        await deleteAllDomains(firestore);
+        toast({
+          title: 'Success',
+          description: 'All domains have been deleted.',
+        });
+      } catch (e: any) {
+        let description = e.message || 'Failed to delete all domains.';
+        if (e.code === 'permission-denied') {
+          description =
+            'Admin privileges required. Please use the /become-admin page to grant access.';
         }
-      });
+        toast({
+          title: 'Error',
+          description,
+          variant: 'destructive',
+        });
+      }
+    });
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight font-headline">Manage Domains</h1>
-        <p className="text-muted-foreground">Add new domains to your portfolio.</p>
+        <h1 className="text-3xl font-bold tracking-tight font-headline">
+          Manage Domains
+        </h1>
+        <p className="text-muted-foreground">
+          Add new domains to your portfolio.
+        </p>
       </div>
 
       <Tabs defaultValue="single">
@@ -386,8 +423,16 @@ export default function AdminDomainsPage() {
             <h2 className="text-xl font-semibold">All Domains</h2>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm" disabled={isPending || !domains || domains.length === 0}>
-                  {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isPending || !domains || domains.length === 0}
+                >
+                  {isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 h-4 w-4" />
+                  )}
                   Delete All
                 </Button>
               </AlertDialogTrigger>
@@ -395,7 +440,8 @@ export default function AdminDomainsPage() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete all {domains?.length} domains.
+                    This action cannot be undone. This will permanently delete
+                    all {domains?.length} domains.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -425,20 +471,36 @@ export default function AdminDomainsPage() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-40" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-8" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-8" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-8" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-8" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-8 ml-auto" />
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : domains && domains.length > 0 ? (
                   domains.map((domain) => (
                     <TableRow key={domain.id}>
                       <TableCell className="font-medium">{domain.url}</TableCell>
-                      <TableCell>{getCategoryName(domain.categorySlug)}</TableCell>
+                      <TableCell>
+                        {getCategoryName(domain.categorySlug)}
+                      </TableCell>
                       <TableCell>{domain.da}</TableCell>
                       <TableCell>{domain.tf}</TableCell>
                       <TableCell>{domain.dr}</TableCell>
@@ -455,12 +517,15 @@ export default function AdminDomainsPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will permanently delete the domain "{domain.url}".
+                                This will permanently delete the domain "
+                                {domain.url}".
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteDomain(domain.id)}>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteDomain(domain.id)}
+                              >
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -470,11 +535,11 @@ export default function AdminDomainsPage() {
                     </TableRow>
                   ))
                 ) : (
-                    <TableRow>
-                        <TableCell colSpan={7} className="h-24 text-center">
-                            No domains found.
-                        </TableCell>
-                    </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      No domains found.
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>
