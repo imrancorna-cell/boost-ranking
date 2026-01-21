@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,7 +41,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useFirestore, useMemoFirebase, type WithId } from '@/firebase';
+import { useCollection, useFirestore, type WithId } from '@/firebase';
 import { addCategory } from '@/lib/data-service';
 import type { Domain, DomainCategory } from '@/lib/definitions';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -140,13 +140,13 @@ function AddCategoryDialog() {
 
 export default function AdminCategoriesPage() {
   const firestore = useFirestore();
-  const categoriesQuery = useMemoFirebase(
+  const categoriesQuery = useMemo(
     () => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null,
     [firestore]
   );
   const { data: categories, isLoading } = useCollection<DomainCategory>(categoriesQuery);
 
-  const domainsQuery = useMemoFirebase(
+  const domainsQuery = useMemo(
     () => firestore ? collection(firestore, 'domains') : null,
     [firestore]
   );

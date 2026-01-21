@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { ArrowRight, Folder, Globe, Shield, Loader2 } from 'lucide-react';
 import type { DomainCategory, Domain } from '@/lib/definitions';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useMemo } from 'react';
 
@@ -44,11 +44,11 @@ function CategoryCard({ category, domainCount }: { category: DomainCategory; dom
 export default function Home() {
   const firestore = useFirestore();
 
-  const categoriesQuery = useMemoFirebase(
+  const categoriesQuery = useMemo(
     () => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null,
     [firestore]
   );
-  const domainsQuery = useMemoFirebase(
+  const domainsQuery = useMemo(
     () => firestore ? collection(firestore, 'domains') : null,
     [firestore]
   );

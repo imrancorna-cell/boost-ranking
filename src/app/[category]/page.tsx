@@ -5,7 +5,7 @@ import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Home, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import { collection, query, where } from 'firebase/firestore';
 import type { Domain, DomainCategory } from '@/lib/definitions';
 import { useMemo } from 'react';
@@ -15,12 +15,12 @@ export default function CategoryPage() {
   const categorySlug = params.category as string;
   const firestore = useFirestore();
 
-  const categoryQuery = useMemoFirebase(
+  const categoryQuery = useMemo(
     () => firestore && categorySlug ? query(collection(firestore, 'domainCategories'), where('slug', '==', categorySlug)) : null,
     [firestore, categorySlug]
   );
   
-  const domainsQuery = useMemoFirebase(
+  const domainsQuery = useMemo(
     () => firestore && categorySlug ? query(collection(firestore, 'domains'), where('categorySlug', '==', categorySlug)) : null,
     [firestore, categorySlug]
   );

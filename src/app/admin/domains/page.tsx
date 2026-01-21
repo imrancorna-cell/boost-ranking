@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useTransition } from 'react';
+import { useTransition, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,7 +35,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCollection, useFirestore, useMemoFirebase, type WithId } from '@/firebase';
+import { useCollection, useFirestore, type WithId } from '@/firebase';
 import { addDomain, addBulkDomains, deleteDomain, deleteAllDomains } from '@/lib/data-service';
 import type { Domain, DomainCategory } from '@/lib/definitions';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -301,8 +301,8 @@ export default function AdminDomainsPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   
-  const categoriesQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null, [firestore]);
-  const domainsQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'domains'), orderBy('url')) : null, [firestore]);
+  const categoriesQuery = useMemo(() => firestore ? query(collection(firestore, 'domainCategories'), orderBy('name')) : null, [firestore]);
+  const domainsQuery = useMemo(() => firestore ? query(collection(firestore, 'domains'), orderBy('url')) : null, [firestore]);
 
   const { data: categories, isLoading: categoriesLoading } = useCollection<DomainCategory>(categoriesQuery);
   const { data: domains, isLoading: domainsLoading } = useCollection<Domain>(domainsQuery);

@@ -7,15 +7,16 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { FolderKanban, Globe, Loader2 } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Domain, DomainCategory } from '@/lib/definitions';
+import { useMemo } from 'react';
 
 export default function AdminDashboardPage() {
   const firestore = useFirestore();
   
-  const domainsQuery = useMemoFirebase(() => firestore ? collection(firestore, 'domains') : null, [firestore]);
-  const categoriesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'domainCategories') : null, [firestore]);
+  const domainsQuery = useMemo(() => firestore ? collection(firestore, 'domains') : null, [firestore]);
+  const categoriesQuery = useMemo(() => firestore ? collection(firestore, 'domainCategories') : null, [firestore]);
 
   const { data: domains, isLoading: domainsLoading } = useCollection<Domain>(domainsQuery);
   const { data: categories, isLoading: categoriesLoading } = useCollection<DomainCategory>(categoriesQuery);
