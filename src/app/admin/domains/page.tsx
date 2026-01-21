@@ -76,21 +76,23 @@ function AddDomainForm({ categories }: { categories: WithId<DomainCategory>[] })
   });
 
   const onSubmit = (values: z.infer<typeof domainSchema>) => {
-    try {
-        addDomain(firestore, values);
-        toast({ title: 'Success', description: 'Domain is being added.' });
-        form.reset();
-      } catch (e: any) {
-        let description = e.message || 'Failed to add domain.';
-        if (e.code === 'permission-denied') {
-          description = "Admin privileges required. Please use the /become-admin page to grant access.";
-        }
-        toast({
-          title: 'Error',
-          description,
-          variant: 'destructive',
-        });
-      }
+    startTransition(async () => {
+        try {
+            await addDomain(firestore, values);
+            toast({ title: 'Success', description: 'Domain added successfully.' });
+            form.reset();
+          } catch (e: any) {
+            let description = e.message || 'Failed to add domain.';
+            if (e.code === 'permission-denied') {
+              description = "Admin privileges required. Please use the /become-admin page to grant access.";
+            }
+            toast({
+              title: 'Error',
+              description,
+              variant: 'destructive',
+            });
+          }
+    });
   };
 
   return (
@@ -310,23 +312,25 @@ export default function AdminDomainsPage() {
   const getCategoryName = (slug: string) => categories?.find(c => c.slug === slug)?.name || slug;
 
   const handleDeleteDomain = (domainId: string) => {
-    try {
-      deleteDomain(firestore, domainId);
-      toast({
-        title: 'Success',
-        description: 'The domain is being deleted.',
-      });
-    } catch (e: any) {
-      let description = e.message || 'Failed to delete domain.';
-      if (e.code === 'permission-denied') {
-          description = "Admin privileges required. Please use the /become-admin page to grant access.";
-      }
-      toast({
-        title: 'Error',
-        description,
-        variant: 'destructive',
-      });
-    }
+    startTransition(async () => {
+        try {
+            await deleteDomain(firestore, domainId);
+            toast({
+              title: 'Success',
+              description: 'The domain has been deleted.',
+            });
+          } catch (e: any) {
+            let description = e.message || 'Failed to delete domain.';
+            if (e.code === 'permission-denied') {
+                description = "Admin privileges required. Please use the /become-admin page to grant access.";
+            }
+            toast({
+              title: 'Error',
+              description,
+              variant: 'destructive',
+            });
+          }
+    });
   };
 
   const handleDeleteAllDomains = () => {

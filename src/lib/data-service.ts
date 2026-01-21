@@ -11,21 +11,18 @@ import {
   query,
 } from 'firebase/firestore';
 import type { Domain } from './definitions';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 
-export function addCategory(firestore: Firestore, name: string) {
+export async function addCategory(firestore: Firestore, name: string) {
   const slug = name.toLowerCase().replace(/\s+/g, '-');
   const newCategory = { name, slug };
 
   const categoriesCollection = collection(firestore, 'domainCategories');
-  // No await, returns a promise but we don't block on it.
-  return addDocumentNonBlocking(categoriesCollection, newCategory);
+  await addDoc(categoriesCollection, newCategory);
 }
 
-export function addDomain(firestore: Firestore, domain: Domain) {
+export async function addDomain(firestore: Firestore, domain: Domain) {
     const domainsCollection = collection(firestore, 'domains');
-    // No await
-    return addDocumentNonBlocking(domainsCollection, domain);
+    await addDoc(domainsCollection, domain);
 }
 
 export async function addBulkDomains(firestore: Firestore, domains: Domain[]) {
@@ -37,18 +34,13 @@ export async function addBulkDomains(firestore: Firestore, domains: Domain[]) {
         batch.set(newDocRef, domainData);
     });
 
-    // Batch writes are atomic and should be awaited.
-    // The error handling for batch writes is more complex and currently
-    // will be handled by the component's try/catch.
     await batch.commit();
-
     return { success: true };
 }
 
-export function deleteDomain(firestore: Firestore, domainId: string) {
+export async function deleteDomain(firestore: Firestore, domainId: string) {
   const domainRef = doc(firestore, 'domains', domainId);
-  // No await
-  deleteDocumentNonBlocking(domainRef);
+  await deleteDoc(domainRef);
 }
 
 export async function deleteAllDomains(firestore: Firestore) {

@@ -66,27 +66,27 @@ function AddCategoryDialog() {
   });
 
   const onSubmit = (values: z.infer<typeof categorySchema>) => {
-    // No transition needed for non-blocking write
-    try {
-        addCategory(firestore, values.name);
-        toast({
-          title: 'Success',
-          description: `Category "${values.name}" is being created.`,
-        });
-        setOpen(false);
-        form.reset();
-      } catch (e: any) {
-        // This catch block may not be hit if the error is handled globally.
-        let description = e.message || 'Failed to create category.';
-        if (e.code === 'permission-denied') {
-          description = "Admin privileges required. Please use the /become-admin page to grant access.";
+    startTransition(async () => {
+        try {
+            await addCategory(firestore, values.name);
+            toast({
+              title: 'Success',
+              description: `Category "${values.name}" has been created.`,
+            });
+            setOpen(false);
+            form.reset();
+        } catch (e: any) {
+            let description = e.message || 'Failed to create category.';
+            if (e.code === 'permission-denied') {
+              description = "Admin privileges required. Please use the /become-admin page to grant access.";
+            }
+            toast({
+              title: 'Error',
+              description,
+              variant: 'destructive',
+            });
         }
-        toast({
-          title: 'Error',
-          description,
-          variant: 'destructive',
-        });
-      }
+    });
   };
 
   return (
