@@ -68,7 +68,7 @@
     }
   },
   "firestore": {
-    "/domaincategorie/{domainCategoryId}": {
+    "/domancategorie/{domancategorieId}": {
       "schema": {
         "$ref": "#/entities/DomainCategory"
       },

@@ -8,7 +8,7 @@ service cloud.firestore {
     }
 
     // Domain Categories are publicly readable, but only admins can write.
-    match /domaincategorie/{domainCategoryId} {
+    match /domancategorie/{domancategorieId} {
       allow get, list: if true;
       allow write: if isAdmin();
     }

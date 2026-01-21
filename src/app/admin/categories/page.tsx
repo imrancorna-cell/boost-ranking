@@ -144,7 +144,7 @@ export default function AdminCategoriesPage() {
   const categoriesQuery = useMemo(
     () =>
       firestore
-        ? query(collection(firestore, 'domaincategorie'), orderBy('name'))
+        ? query(collection(firestore, 'domancategorie'), orderBy('name'))
         : null,
     [firestore]
   );

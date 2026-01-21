@@ -20,7 +20,7 @@ export default function AdminDashboardPage() {
     [firestore]
   );
   const categoriesQuery = useMemo(
-    () => (firestore ? collection(firestore, 'domaincategorie') : null),
+    () => (firestore ? collection(firestore, 'domancategorie') : null),
     [firestore]
   );
 

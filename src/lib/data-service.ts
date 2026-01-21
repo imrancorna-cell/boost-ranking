@@ -16,7 +16,7 @@ export async function addCategory(firestore: Firestore, name: string) {
   const slug = name.toLowerCase().replace(/\s+/g, '-');
   const newCategory = { name, slug };
 
-  const categoriesCollection = collection(firestore, 'domaincategorie');
+  const categoriesCollection = collection(firestore, 'domancategorie');
   await addDoc(categoriesCollection, newCategory);
 }
 
