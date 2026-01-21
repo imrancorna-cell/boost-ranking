@@ -65,8 +65,8 @@ export default function Home() {
   );
 
   const { data: categories, isLoading: categoriesLoading } =
-    useCollection<WithId<DomainCategory>>(categoriesQuery);
-  const { data: domains } = useCollection<WithId<Domain>>(domainsQuery);
+    useCollection<DomainCategory>(categoriesQuery);
+  const { data: domains } = useCollection<Domain>(domainsQuery);
 
   const categoryDomainCounts = useMemo(() => {
     if (!domains) return {};

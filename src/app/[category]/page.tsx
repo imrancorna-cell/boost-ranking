@@ -29,8 +29,8 @@ export default function CategoryPage() {
   );
 
   const { data: allCategories, isLoading: categoryLoading } =
-    useCollection<WithId<DomainCategory>>(allCategoriesQuery);
-  const { data: domains, isLoading: domainsLoading } = useCollection<WithId<Domain>>(domainsQuery);
+    useCollection<DomainCategory>(allCategoriesQuery);
+  const { data: domains, isLoading: domainsLoading } = useCollection<Domain>(domainsQuery);
 
   const category = useMemo(
     () => allCategories?.find((c) => c.slug === categorySlug),
