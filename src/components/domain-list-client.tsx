@@ -23,7 +23,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { PaginationControls } from './pagination-controls';
 import { Card, CardContent } from './ui/card';
 
 type SortableDomain = WithId<Domain>;
@@ -33,12 +32,9 @@ type SortConfig = {
   direction: 'ascending' | 'descending';
 } | null;
 
-const ITEMS_PER_PAGE = 10;
-
 export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
   const [filter, setFilter] = useState('');
   const [sortConfig, setSortConfig] = useState<SortConfig>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const [visibleColumns, setVisibleColumns] = useState({
     url: true,
     da: true,
@@ -81,11 +77,6 @@ export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
     return sortableItems;
   }, [filteredDomains, sortConfig]);
 
-  const paginatedDomains = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return sortedDomains.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [sortedDomains, currentPage]);
-
   const requestSort = (key: keyof SortableDomain) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (
@@ -96,10 +87,7 @@ export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
-    setCurrentPage(1);
   };
-
-  const totalPages = Math.ceil(sortedDomains.length / ITEMS_PER_PAGE);
 
   type ColumnKeys = keyof typeof visibleColumns;
 
@@ -120,7 +108,6 @@ export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
             value={filter}
             onChange={(e) => {
               setFilter(e.target.value);
-              setCurrentPage(1);
             }}
             className="max-w-sm"
           />
@@ -164,8 +151,8 @@ export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedDomains.length > 0 ? (
-                paginatedDomains.map((domain) => (
+              {sortedDomains.length > 0 ? (
+                sortedDomains.map((domain) => (
                   <TableRow key={domain.id}>
                     {visibleColumns.url && <TableCell className="font-medium">{domain.url}</TableCell>}
                     {visibleColumns.da && <TableCell>{domain.da}</TableCell>}
@@ -183,13 +170,6 @@ export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
               )}
             </TableBody>
           </Table>
-        </div>
-        <div className="pt-4">
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
         </div>
       </CardContent>
     </Card>
