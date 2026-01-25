@@ -24,7 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Loader2, PlusCircle } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -42,9 +42,20 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection, useFirestore, type WithId } from '@/firebase';
-import { addCategory } from '@/lib/data-service';
+import { addCategory, deleteCategory } from '@/lib/data-service';
 import type { Domain, DomainCategory } from '@/lib/definitions';
 import { collection, query, orderBy } from 'firebase/firestore';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const categorySchema = z.object({
   name: z
@@ -66,27 +77,28 @@ function AddCategoryDialog() {
   });
 
   const onSubmit = (values: z.infer<typeof categorySchema>) => {
-    startTransition(async () => {
-      try {
-        await addCategory(firestore, values.name);
-        toast({
-          title: 'Success',
-          description: `Category "${values.name}" has been created.`,
+    startTransition(() => {
+      addCategory(firestore, values.name)
+        .then(() => {
+          toast({
+            title: 'Success',
+            description: `Category "${values.name}" has been created.`,
+          });
+          setOpen(false);
+          form.reset();
+        })
+        .catch((e: any) => {
+          let description = e.message || 'Failed to create category.';
+          if (e.code === 'permission-denied') {
+            description =
+              'Admin privileges required. Please use the /become-admin page to grant access.';
+          }
+          toast({
+            title: 'Error',
+            description,
+            variant: 'destructive',
+          });
         });
-        setOpen(false);
-        form.reset();
-      } catch (e: any) {
-        let description = e.message || 'Failed to create category.';
-        if (e.code === 'permission-denied') {
-          description =
-            'Admin privileges required. Please use the /become-admin page to grant access.';
-        }
-        toast({
-          title: 'Error',
-          description,
-          variant: 'destructive',
-        });
-      }
     });
   };
 
@@ -141,6 +153,9 @@ function AddCategoryDialog() {
 
 export default function AdminCategoriesPage() {
   const firestore = useFirestore();
+  const { toast } = useToast();
+  const [isDeleting, startDeleteTransition] = useTransition();
+
   const categoriesQuery = useMemo(
     () =>
       firestore
@@ -157,15 +172,43 @@ export default function AdminCategoriesPage() {
   );
   const { data: domains } = useCollection<Domain>(domainsQuery);
 
-  const domainCounts = (categories || []).reduce(
-    (acc, category) => {
-      const count = (domains || []).filter(
-        (d) => d.categorySlug === category.slug
-      ).length;
-      return { ...acc, [category.id]: count };
-    },
-    {} as Record<string, number>
+  const domainCounts = useMemo(
+    () =>
+      (categories || []).reduce(
+        (acc, category) => {
+          const count = (domains || []).filter(
+            (d) => d.categorySlug === category.slug
+          ).length;
+          return { ...acc, [category.id]: count };
+        },
+        {} as Record<string, number>
+      ),
+    [categories, domains]
   );
+
+  const handleDeleteCategory = (categoryId: string, categorySlug: string) => {
+    startDeleteTransition(() => {
+      deleteCategory(firestore, categoryId, categorySlug)
+        .then(() => {
+          toast({
+            title: 'Success',
+            description: 'Category and all its domains have been deleted.',
+          });
+        })
+        .catch((e: any) => {
+          let description = e.message || 'Failed to delete category.';
+          if (e.code === 'permission-denied') {
+            description =
+              'Admin privileges required. Please use the /become-admin page to grant access.';
+          }
+          toast({
+            title: 'Error',
+            description,
+            variant: 'destructive',
+          });
+        });
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -195,6 +238,7 @@ export default function AdminCategoriesPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead className="text-right">Domains</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -206,6 +250,9 @@ export default function AdminCategoriesPage() {
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-4 w-8 ml-auto" />
                     </TableCell>
                     <TableCell className="text-right">
                       <Skeleton className="h-4 w-8 ml-auto" />
@@ -222,11 +269,49 @@ export default function AdminCategoriesPage() {
                     <TableCell className="text-right">
                       {domainCounts[category.id] || 0}
                     </TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isDeleting}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <span className="sr-only">Delete category</span>
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete the category "
+                              {category.name}" and all associated domains. This
+                              action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() =>
+                                handleDeleteCategory(category.id, category.slug)
+                              }
+                            >
+                              {isDeleting ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                'Delete'
+                              )}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">
+                  <TableCell colSpan={4} className="h-24 text-center">
                     No categories found.
                   </TableCell>
                 </TableRow>
