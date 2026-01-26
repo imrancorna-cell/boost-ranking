@@ -10,7 +10,7 @@ export function Logo() {
     >
       <Briefcase className="h-6 w-6 text-primary" />
       <span className="font-bold text-lg font-headline tracking-tight">
-        PBN
+        Boost Ranking
       </span>
     </Link>
   );
