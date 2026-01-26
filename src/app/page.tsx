@@ -22,7 +22,7 @@ function CategoryCard({
 }) {
   return (
     <Link href={`/${category.slug}`} className="group block">
-      <Card className="h-full rounded-2xl transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-2">
+      <Card className="h-full rounded-2xl transition-all duration-300 ease-in-out shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/40 hover:-translate-y-2">
         <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
           <CardTitle className="text-xl font-bold text-primary">{category.name}</CardTitle>
           <CardDescription className="mt-2 text-muted-foreground">
