@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import {
   Card,
-  CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
@@ -29,19 +28,17 @@ function CategoryCard({
 }) {
   return (
     <Link href={`/${category.slug}`} className="group block">
-      <Card className="h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      <Card className="h-full rounded-2xl transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-2 bg-card/50 backdrop-blur-sm border-border/20 hover:border-primary/50">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
             {iconMap[category.slug] || (
-              <Folder className="h-8 w-8 text-primary" />
+              <Folder className="h-10 w-10 text-primary" />
             )}
-            <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRight className="h-6 w-6 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
           </div>
-        </CardHeader>
-        <CardContent>
-          <CardTitle className="text-xl font-semibold">{category.name}</CardTitle>
-          <CardDescription className="mt-1">
-            {domainCount} domains
+          <CardTitle className="text-xl font-bold">{category.name}</CardTitle>
+          <CardDescription className="mt-2">
+            {domainCount} {domainCount === 1 ? 'domain' : 'domains'}
           </CardDescription>
         </CardContent>
       </Card>
@@ -81,26 +78,33 @@ export default function Home() {
 
   return (
     <div className="flex-1">
-      <section className="w-full py-12 md:py-24 lg:py-32">
+      <section className="relative w-full py-24 md:py-32 lg:py-40 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-background to-secondary/50 -z-10" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 animate-[spin_20s_linear_infinite] [background-image:radial-gradient(hsla(var(--primary)/0.2)_1px,transparent_1px),radial-gradient(hsla(var(--accent)/0.2)_1px,transparent_1px)] [background-size:2rem_2rem] [background-position:0_0,1rem_1rem]"
+        />
+
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none font-headline">
-                Explore Our Domain Portfolio
+          <div className="flex flex-col items-center space-y-6 text-center">
+            <div className="space-y-4">
+              <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none font-headline bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Navigate Your Digital Assets
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                Discover a curated selection of domains organized by category.
+                An elegant, simple, and powerful platform to manage and browse
+                your domain portfolio with ease.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="w-full pb-20">
+      <section className="w-full pb-20 -mt-16">
         <div className="container px-4 md:px-6">
           {categoriesLoading ? (
-            <div className="flex justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
