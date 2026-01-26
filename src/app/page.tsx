@@ -7,17 +7,11 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card';
-import { ArrowRight, Folder, Globe, Shield, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import type { DomainCategory, Domain } from '@/lib/definitions';
 import { useCollection, useFirestore, type WithId } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useMemo } from 'react';
-
-const iconMap: { [key: string]: React.ReactNode } = {
-  'general-domains': <Globe className="h-8 w-8 text-primary" />,
-  'premium-domains': <Shield className="h-8 w-8 text-primary" />,
-  'other-domains': <Folder className="h-8 w-8 text-primary" />,
-};
 
 function CategoryCard({
   category,
@@ -28,16 +22,10 @@ function CategoryCard({
 }) {
   return (
     <Link href={`/${category.slug}`} className="group block">
-      <Card className="h-full rounded-2xl transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-2 bg-card/50 backdrop-blur-sm border-border/20 hover:border-primary/50">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            {iconMap[category.slug] || (
-              <Folder className="h-10 w-10 text-primary" />
-            )}
-            <ArrowRight className="h-6 w-6 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
-          </div>
+      <Card className="h-full rounded-2xl transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-2 bg-primary text-primary-foreground">
+        <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
           <CardTitle className="text-xl font-bold">{category.name}</CardTitle>
-          <CardDescription className="mt-2">
+          <CardDescription className="mt-2 text-primary-foreground/80">
             {domainCount} {domainCount === 1 ? 'domain' : 'domains'}
           </CardDescription>
         </CardContent>
