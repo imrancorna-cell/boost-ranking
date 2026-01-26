@@ -17,82 +17,63 @@ export function Logo({ containerClassName }: { containerClassName?: string }) {
         >
           <defs>
             <linearGradient id="logo-blue-grad" x1="0.5" y1="0" x2="0.5" y2="1">
-              <stop offset="0" stopColor="#29abe2" />
-              <stop offset="1" stopColor="#1b6ca8" />
+              <stop offset="0%" stopColor="#29abe2" />
+              <stop offset="100%" stopColor="#0071bc" />
             </linearGradient>
             <linearGradient id="logo-green-grad" x1="0.5" y1="0" x2="0.5" y2="1">
-              <stop offset="0" stopColor="#92d050" />
-              <stop offset="1" stopColor="#5c9d36" />
+              <stop offset="0%" stopColor="#8dc63f" />
+              <stop offset="100%" stopColor="#39b54a" />
             </linearGradient>
           </defs>
-
-          {/* Graphic part */}
-          <g transform="translate(40, 0)">
-            {/* B */}
+          
+          <g transform="translate(65, 0)">
+            {/* Using a font that is bold and rounded */}
             <text
-              x="20"
-              y="100"
-              fontFamily="Arial, sans-serif"
-              fontSize="100"
+              x="145"
+              y="90"
+              fontFamily="'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif"
+              fontSize="90"
+              fontWeight="bold"
+              fill="url(#logo-blue-grad)"
+            >
+              R
+            </text>
+            <g transform="translate(0, 5)">
+              <rect x="135" y="45" width="15" height="40" rx="3" fill="url(#logo-green-grad)"/>
+              <rect x="153" y="30" width="15" height="55" rx="3" fill="url(#logo-green-grad)"/>
+              <rect x="171" y="15" width="15" height="70" rx="3" fill="url(#logo-green-grad)"/>
+            </g>
+            <text
+              x="60"
+              y="90"
+              fontFamily="'Arial Rounded MT Bold', 'Helvetica Rounded', Arial, sans-serif"
+              fontSize="90"
               fontWeight="bold"
               fill="url(#logo-blue-grad)"
             >
               B
             </text>
 
-            {/* Bars */}
-            <g>
-              <rect
-                x="145"
-                y="35"
-                width="20"
-                height="65"
-                fill="url(#logo-green-grad)"
-              />
-              <rect
-                x="170"
-                y="20"
-                width="20"
-                height="80"
-                fill="url(#logo-green-grad)"
-              />
-            </g>
-
-            {/* R */}
-            <text
-              x="130"
-              y="100"
-              fontFamily="Arial, sans-serif"
-              fontSize="100"
-              fontWeight="bold"
-              fill="url(#logo-blue-grad)"
-            >
-              R
-            </text>
-
-            {/* Arrow */}
-            <g>
+            <g transform="translate(0, -5)">
               <path
-                d="M70, 105 C 120, 50, 180, 10, 220, 5"
+                d="M 90 100 C 130 65, 190 15, 240 20"
                 stroke="url(#logo-green-grad)"
                 strokeWidth="12"
                 fill="none"
                 strokeLinecap="round"
               />
-              {/* Arrowhead */}
               <path
-                d="M210 15 L 220 5 L 215 20 z"
+                d="M228 29 L 240 20 L 235 34 z"
                 fill="url(#logo-green-grad)"
               />
             </g>
           </g>
 
-          {/* Text part */}
           <text
             x="200"
             y="140"
             textAnchor="middle"
-            fontFamily="Arial, sans-serif"
+            fontFamily="'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif"
             fontSize="30"
             fontWeight="bold"
             fill="#333"
