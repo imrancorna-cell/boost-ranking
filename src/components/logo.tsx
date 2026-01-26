@@ -1,13 +1,14 @@
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
-export function Logo() {
+export function Logo({ containerClassName }: { containerClassName?: string }) {
   return (
     <Link
       href="/"
       className="flex items-center"
       aria-label="Boost Ranking homepage"
     >
-      <div className="h-8 w-auto">
+      <div className={cn('h-8 w-auto', containerClassName)}>
         <svg
           viewBox="0 0 400 150"
           xmlns="http://www.w3.org/2000/svg"

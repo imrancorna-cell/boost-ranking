@@ -12,6 +12,7 @@ import type { DomainCategory, Domain } from '@/lib/definitions';
 import { useCollection, useFirestore, type WithId } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useMemo } from 'react';
+import { Logo } from '@/components/logo';
 
 function CategoryCard({
   category,
@@ -75,6 +76,7 @@ export default function Home() {
 
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center space-y-6 text-center">
+            <Logo containerClassName="w-48 h-auto" />
             <div className="space-y-4">
               <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none font-headline bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Navigate Your Digital Assets
