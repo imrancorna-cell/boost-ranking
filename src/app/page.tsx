@@ -67,7 +67,7 @@ export default function Home() {
 
   return (
     <div className="flex-1">
-      <section className="relative w-full py-24 md:py-32 lg:py-40 overflow-hidden">
+      <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background to-secondary/50 -z-10" />
         <div
           aria-hidden="true"
@@ -76,9 +76,9 @@ export default function Home() {
 
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center space-y-6 text-center">
-            <Logo containerClassName="w-48" />
+            <Logo containerClassName="w-56" />
             <div className="space-y-4">
-              <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl/none font-headline bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl font-headline bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Navigate Your Digital Assets
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
