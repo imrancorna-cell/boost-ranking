@@ -23,7 +23,7 @@ function CategoryCard({
 }) {
   return (
     <Link href={`/${category.slug}`} className="group block">
-      <Card className="h-full rounded-2xl transition-all duration-300 ease-in-out shadow-lg shadow-accent/25 group-hover:shadow-xl group-hover:shadow-accent/40 group-hover:-translate-y-2">
+      <Card className="h-full rounded-2xl transition-all duration-300 ease-in-out shadow-lg shadow-purple-500/25 group-hover:shadow-xl group-hover:shadow-purple-500/40 group-hover:-translate-y-2">
         <CardContent className="p-6 flex flex-col items-center justify-center text-center h-full">
           <CardTitle className="text-xl font-bold text-primary">{category.name}</CardTitle>
           <CardDescription className="mt-2 text-muted-foreground">
@@ -67,7 +67,7 @@ export default function Home() {
 
   return (
     <div className="flex-1">
-      <section className="relative w-full py-16 md:py-24 lg:py-32 overflow-hidden">
+      <section className="relative w-full py-12 md:py-16 lg:py-24 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background to-secondary/50 -z-10" />
         <div
           aria-hidden="true"
@@ -76,14 +76,14 @@ export default function Home() {
 
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center space-y-6 text-center">
-            <Logo containerClassName="w-56" />
+            <Logo containerClassName="w-56 md:w-64" />
             <div className="space-y-4">
-              <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-6xl font-headline bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Navigate Your Digital Assets
+              <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-5xl font-headline bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Boost Your Rankings with High-Authority PBN Websites
               </h1>
               <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                An elegant, simple, and powerful platform to manage and browse
-                your domain portfolio with ease.
+                Browse, filter, and access Private Blog Network sites built for
+                powerful SEO results.
               </p>
             </div>
           </div>
