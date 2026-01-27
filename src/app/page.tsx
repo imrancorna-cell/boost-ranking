@@ -67,7 +67,7 @@ export default function Home() {
 
   return (
     <div className="flex-1">
-      <section className="relative w-full pt-12 md:pt-16 lg:pt-20 pb-12 md:pb-16 lg:pb-20 overflow-hidden">
+      <section className="relative w-full pt-8 md:pt-12 lg:pt-16 pb-12 md:pb-16 lg:pb-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-background to-secondary/50 -z-10" />
         <div
           aria-hidden="true"
@@ -76,7 +76,7 @@ export default function Home() {
 
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center space-y-6 text-center">
-            <Logo containerClassName="relative w-64 sm:w-72 md:w-80 lg:w-96" />
+            <Logo containerClassName="relative w-72 sm:w-80 md:w-96 lg:w-[480px]" />
             <div className="space-y-4">
               <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl md:text-5xl lg:max-w-4xl mx-auto font-headline bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 Boost Your Rankings with High-Authority PBN Websites
