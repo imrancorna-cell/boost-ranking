@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { LayoutDashboard, LogOut, Loader2 } from 'lucide-react';
+import { LayoutDashboard, LogOut, Loader2, UploadCloud } from 'lucide-react';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useEffect, useState } from 'react';
@@ -39,13 +39,13 @@ function AuthButton() {
         {isAdmin && (
           <Button asChild variant="ghost" size="sm">
             <Link href="/admin">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <LayoutDashboard />
               Admin
             </Link>
           </Button>
         )}
         <Button variant="outline" size="sm" onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut />
           Logout
         </Button>
       </div>
@@ -65,7 +65,11 @@ export function SiteHeader() {
       <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
         <Logo />
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <nav className="flex items-center space-x-1">
+          <nav className="flex items-center space-x-2">
+            <Button size="sm">
+              <UploadCloud />
+              Publish
+            </Button>
             <AuthButton />
           </nav>
         </div>
