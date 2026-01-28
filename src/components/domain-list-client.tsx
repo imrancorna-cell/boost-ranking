@@ -202,10 +202,14 @@ export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
                 {columnConfig
                   .filter((c) => visibleColumns[c.id])
                   .map((column) => (
-                    <TableHead key={column.id}>
+                    <TableHead
+                      key={column.id}
+                      className={column.id !== 'url' ? 'text-center' : ''}
+                    >
                       <Button
                         variant="ghost"
                         onClick={() => requestSort(column.sortKey)}
+                        className={column.id !== 'url' ? 'mx-auto' : ''}
                       >
                         {column.label}
                         <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -221,16 +225,26 @@ export function DomainListClient({ domains }: { domains: WithId<Domain>[] }) {
                     {visibleColumns.url && (
                       <TableCell className="font-medium">{domain.url}</TableCell>
                     )}
-                    {visibleColumns.da && <TableCell>{domain.da}</TableCell>}
-                    {visibleColumns.dr && <TableCell>{domain.dr}</TableCell>}
-                    {visibleColumns.tf && <TableCell>{domain.tf}</TableCell>}
-                    {visibleColumns.ss && <TableCell>{domain.ss}%</TableCell>}
+                    {visibleColumns.da && (
+                      <TableCell className="text-center">{domain.da}</TableCell>
+                    )}
+                    {visibleColumns.dr && (
+                      <TableCell className="text-center">{domain.dr}</TableCell>
+                    )}
+                    {visibleColumns.tf && (
+                      <TableCell className="text-center">{domain.tf}</TableCell>
+                    )}
+                    {visibleColumns.ss && (
+                      <TableCell className="text-center">{domain.ss}%</TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={Object.values(visibleColumns).filter(Boolean).length}
+                    colSpan={
+                      Object.values(visibleColumns).filter(Boolean).length
+                    }
                     className="h-24 text-center"
                   >
                     No results found.
