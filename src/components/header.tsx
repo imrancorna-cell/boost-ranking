@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/logo';
-import { LayoutDashboard, LogOut, Loader2, UploadCloud } from 'lucide-react';
+import { LayoutDashboard, LogOut, Loader2 } from 'lucide-react';
 import { useAuth, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useEffect, useState } from 'react';
@@ -66,10 +66,6 @@ export function SiteHeader() {
         <Logo />
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="flex items-center space-x-2">
-            <Button size="sm">
-              <UploadCloud />
-              Publish
-            </Button>
             <AuthButton />
           </nav>
         </div>
