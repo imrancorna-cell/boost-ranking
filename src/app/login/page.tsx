@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition, useEffect, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
@@ -37,7 +37,7 @@ const loginSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
 });
 
-export default function LoginPage() {
+function LoginContent() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -175,5 +175,17 @@ export default function LoginPage() {
         </Form>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
