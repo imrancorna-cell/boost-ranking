@@ -57,7 +57,7 @@ function LoginContent() {
   useEffect(() => {
     if (!isUserLoading && user) {
         const next = searchParams.get('next')
-        router.push(next || '/admin');
+        router.push(next || '/');
     }
   }, [user, isUserLoading, router, searchParams]);
 
