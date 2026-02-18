@@ -12,6 +12,14 @@ export function SiteFooter() {
             Boost your SEO with our portfolio of high-authority domains.
             Quality, filtered, and ready for your network.
           </p>
+          <a
+            href="https://www.fiverr.com/ibrkjj2/build-high-quality-dofollow-backlinks-authority-pa-da-seo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline text-sm font-medium transition-colors"
+          >
+            Contact Us
+          </a>
         </div>
 
         <div className="mt-12 border-t pt-8 flex items-center justify-center">
